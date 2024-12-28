@@ -32,7 +32,11 @@ pipeline {
                     withSonarQubeEnv('Sonarqube') {
                         sh '''
                         npm install sonar-scanner
-                        npx sonar-scanner                         -Dsonar.projectKey=frontend-web                         -Dsonar.sources=src                         -Dsonar.host.url=http://<sonarqube-server>:9000                         -Dsonar.login=$SONAR_TOKEN
+                        npx sonar-scanner                        
+                        -Dsonar.projectKey=web-form                       
+                        -Dsonar.sources=src                       
+                        -Dsonar.host.url=http://<sonarqube-server>:9000                         
+                        -Dsonar.login=$SONAR_TOKEN
                         '''
                     }
                 }

@@ -4,7 +4,7 @@ pipeline {
         nodejs 'nodejs-20.11'
     }
     environment {
-        SONAR_TOKEN = credentials('sonarqube-token')
+        SONAR_TOKEN = credentials('Sonarqube-token')
     }
     stages {
         stage('Checkout Code') {

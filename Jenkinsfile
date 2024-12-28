@@ -1,61 +1,75 @@
 pipeline {
     agent any
-    tools {
-        nodejs 'nodejs-20.11'
-    }
+
     environment {
-        SONAR_TOKEN = credentials('Sonarqube-token')
+        NODEJS_PATH = 'C:/Program Files/nodejs'
+        SONAR_SCANNER_PATH = 'C:/Users/ADMIN/Downloads/sonar-scanner-cli-6.2.1.4610-windows-x64/sonar-scanner-6.2.1.4610-windows-x64/bin'
     }
+
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
+                // Checkout code from SCM
                 checkout scm
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                dir('frontend') {
-                    sh 'npm install'
-                }
+                // Install NPM dependencies
+                bat '''
+                set PATH=%NODEJS_PATH%;%PATH%
+                npm install
+                '''
             }
         }
+
         stage('Run Tests') {
             steps {
-                dir('frontend') {
-                    sh 'npm test -- --passWithNoTests'
-                }
+                // Execute frontend tests
+                bat '''
+                set PATH=%NODEJS_PATH%;%PATH%
+                npm test -- --passWithNoTests
+                '''
             }
         }
+
         stage('SonarQube Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('Sonarqube-token') // SonarQube token stored in Jenkins credentials
+            }
             steps {
-                dir('frontend') {
-                    withSonarQubeEnv('Sonarqube') {
-                        sh '''
-                        npm install sonar-scanner
-                        npx sonar-scanner                        
-                        -Dsonar.projectKey=web-form                       
-                        -Dsonar.sources=src                       
-                        -Dsonar.host.url=http://<sonarqube-server>:9000                         
-                        -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    }
-                }
+                // Run SonarQube analysis
+                bat '''
+                set PATH=%SONAR_SCANNER_PATH%;%PATH%
+                sonar-scanner -Dsonar.projectKey=frontend ^
+                    -Dsonar.sources=. ^
+                    -Dsonar.host.url=http://localhost:9000 ^
+                    -Dsonar.token=%SONAR_TOKEN%
+                '''
             }
         }
+
         stage('Build Application') {
             steps {
-                dir('frontend') {
-                    sh 'npm run build'
-                }
+                // Build the frontend application
+                bat '''
+                set PATH=%NODEJS_PATH%;%PATH%
+                npm run build
+                '''
             }
         }
     }
+
     post {
         success {
-            echo 'Pipeline executed successfully.'
+            echo 'Frontend pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed. Please check logs.'
+            echo 'Frontend pipeline failed. Please check the logs.'
+        }
+        always {
+            echo 'This always runs, regardless of success or failure.'
         }
     }
 }
